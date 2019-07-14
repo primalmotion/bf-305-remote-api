@@ -25,12 +25,9 @@ import RPi.GPIO as GPIO
 
 USAGE = """
  Usage:
-    %s [mode] [command_string]
+    %s [command]
 
-    - Mode is either 'pair' or 'cmd'.
-
-    - Commands are 'up', 'down', 'stop' or raw command
-    - Command length is", MARKISOL_COMMAND_BIT_ARRAY_SIZE, "bits.
+    commands: 'pair', 'up', 'down', 'stop', 'change', 'limit'.
 """
 
 # Control Commands
@@ -68,6 +65,55 @@ def cleanup():
     GPIO.cleanup()
 
 
+def send(command):
+    _sendMarkisolCommand(_convertCmd(command))
+
+
+def _sendMarkisolCommand(command):
+
+    if len(str(command)) is not MARKISOL_COMMAND_BIT_ARRAY_SIZE:
+        print "invalid command:", len(str(command)), "bits long."
+
+    for t in range(REPEAT_COMMAND):
+        _doMarkisolTribitSend(command)
+
+    _transmitLow(MARKISOL_RADIO_SILENCE)
+
+    print "> %s" % command.upper()
+
+
+def _doMarkisolTribitSend(command):
+
+    # AGC bits:
+    _transmitHigh(MARKISOL_AGC1_PULSE)  # AGC 1
+    _transmitLow(MARKISOL_AGC2_PULSE)  # AGC 2
+    _transmitHigh(MARKISOL_AGC3_PULSE)  # AGC 3
+
+    for i in command:
+
+        if i == '0':  # LOW-HIGH-LOW
+            _transmitLow(MARKISOL_PULSE_SHORT)
+            _transmitHigh(MARKISOL_PULSE_SHORT)
+            _transmitLow(MARKISOL_PULSE_SHORT)
+
+        elif i == '1':  # LOW-HIGH-HIGH
+            _transmitLow(MARKISOL_PULSE_SHORT)
+            _transmitHigh(MARKISOL_PULSE_LONG)
+
+        else:
+            print "Invalid character", i, "in command! Exiting..."
+
+
+def _transmitHigh(delay):
+    GPIO.output(TRANSMIT_PIN, GPIO.HIGH)
+    time.sleep(delay)
+
+
+def _transmitLow(delay):
+    GPIO.output(TRANSMIT_PIN, GPIO.LOW)
+    time.sleep(delay)
+
+
 def _convertCmd(cmd_string):
     if cmd_string.lower() == "up":
         return SHADE_UP
@@ -79,89 +125,24 @@ def _convertCmd(cmd_string):
         return SHADE_LIMIT
     elif cmd_string.lower() == "change":
         return SHADE_CHANGE_DIRECTION
+    elif cmd_string.lower() == "pair":
+        return SHADE_PAIR
     else:
-        return cmd_string
-
-
-def send(command):
-    _sendMarkisolCommand(_convertCmd(command))
-
-
-def _sendMarkisolCommand(command):
-
-    if len(str(command)) is not MARKISOL_COMMAND_BIT_ARRAY_SIZE:
-        print "Your (invalid) command was", len(str(command)), "bits long."
-
-    for t in range(REPEAT_COMMAND):
-        doMarkisolTribitSend(command)
-
-    transmitLow(MARKISOL_RADIO_SILENCE)
-
-    print "%s command sent." % command.upper()
-
-
-def doMarkisolTribitSend(command):
-
-    # AGC bits:
-    transmitHigh(MARKISOL_AGC1_PULSE)  # AGC 1
-    transmitLow(MARKISOL_AGC2_PULSE)  # AGC 2
-    transmitHigh(MARKISOL_AGC3_PULSE)  # AGC 3
-
-    for i in command:
-
-        if i == '0':  # LOW-HIGH-LOW
-            transmitLow(MARKISOL_PULSE_SHORT)
-            transmitHigh(MARKISOL_PULSE_SHORT)
-            transmitLow(MARKISOL_PULSE_SHORT)
-
-        elif i == '1':  # LOW-HIGH-HIGH
-            transmitLow(MARKISOL_PULSE_SHORT)
-            transmitHigh(MARKISOL_PULSE_LONG)
-
-        else:
-            print "Invalid character", i, "in command! Exiting..."
-
-
-def transmitHigh(delay):
-    GPIO.output(TRANSMIT_PIN, GPIO.HIGH)
-    time.sleep(delay)
-
-
-def transmitLow(delay):
-    GPIO.output(TRANSMIT_PIN, GPIO.LOW)
-    time.sleep(delay)
-
-
-def printUsage():
-    print "%s" % (USAGE % os.path.basename(sys.argv[0]))
-    exit()
+        raise Exception("Unknown command '%s'" % cmd_string)
 
 
 # ------------------------------------------------------------------
 # Main program:
 # ------------------------------------------------------------------
 
-
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        printUsage()
+    if len(sys.argv) != 2:
+        print "%s" % (USAGE % os.path.basename(sys.argv[0]))
+        exit()
 
-    argv_mode = sys.argv[1]
+    argv_cmd = sys.argv[1]
 
     init()
-
-    if argv_mode == "pair":
-        _sendMarkisolCommand(SHADE_PAIR)
-        print "PAIR command sent."
-
-    elif argv_mode == "cmd":
-
-        if len(sys.argv) < 3:
-            printUsage()
-
-        argv_cmd = _convertCmd(sys.argv[2])
-
-        _sendMarkisolCommand(argv_cmd)
-
+    _sendMarkisolCommand(_convertCmd(argv_cmd))
     cleanup()

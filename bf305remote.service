@@ -1,0 +1,13 @@
+[Unit]
+Description=API Controlled BF-305 Remote
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/bf-305-remote-api
+ExecStart=/home/pi/bf-305-remote-api/start-server.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

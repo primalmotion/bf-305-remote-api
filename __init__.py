@@ -23,19 +23,19 @@ def create_app(test_config=None):
     @app.route('/up')
     def shadeUp():
         # markisol.send('up')
-        subprocess.call(['%s/markisol.py' % dir_path, 'cmd', 'up'])
+        subprocess.call(['%s/markisol.py' % dir_path, 'up'])
         return "OK up"
 
     @app.route('/down')
     def shadeDown():
         # markisol.send('down')
-        subprocess.call(['%s/markisol.py' % dir_path, 'cmd', 'down'])
+        subprocess.call(['%s/markisol.py' % dir_path, 'down'])
         return "OK down"
 
     @app.route('/stop')
     def shadeStop():
         # markisol.send('stop')
-        subprocess.call(['%s/markisol.py' % dir_path, 'cmd', 'stop'])
+        subprocess.call(['%s/markisol.py' % dir_path, 'stop'])
         return "OK stop"
 
     return app
