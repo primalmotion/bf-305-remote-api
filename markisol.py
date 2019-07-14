@@ -10,12 +10,10 @@
 * This is a Python implementation of the Markisol protocol, for
 * the Raspberry Pi. Plug your transmitter to BOARD PIN 16 (BCM/GPIO23).
 *
-* HOW TO USE
-* ./Markisol.py [41-bit_binary_string]
-*
 * More info on the protocol in Markisol.ino and RemoteCapture.ino here:
 * https://github.com/akirjavainen/markisol
 *
+* Adapted by: Antoine Mercadal
 """
 
 import time

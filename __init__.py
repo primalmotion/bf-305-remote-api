@@ -20,6 +20,9 @@ def create_app(test_config=None):
     # markisol.init()
     # atexit.register(markisol.cleanup)
 
+    # markisol.send('pair')
+    subprocess.call(['%s/markisol.py' % dir_path, 'pair'])
+
     @app.route('/up')
     def shadeUp():
         # markisol.send('up')
