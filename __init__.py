@@ -2,6 +2,7 @@ from flask import Flask
 
 import os
 import subprocess
+import time
 
 # import markisol
 # import atexit
@@ -20,14 +21,11 @@ def create_app(test_config=None):
     # markisol.init()
     # atexit.register(markisol.cleanup)
 
-    # markisol.send('pair')
-    subprocess.call(['%s/markisol.py' % dir_path, 'pair'])
-
     @app.route('/up')
     def shadeUp():
         # markisol.send('up')
         subprocess.call(['%s/markisol.py' % dir_path, 'up'])
-        return "OK up"
+        return "OK"
 
     @app.route('/down')
     def shadeDown():
@@ -39,6 +37,63 @@ def create_app(test_config=None):
     def shadeStop():
         # markisol.send('stop')
         subprocess.call(['%s/markisol.py' % dir_path, 'stop'])
-        return "OK stop"
+        return "OK"
+
+    @app.route('/ir/activities/off')
+    def ir_activities_off():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_POWER2'])
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER2'])
+        time.sleep(1)
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER2'])
+        time.sleep(2)
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER2'])
+        return "OK" 
+
+    @app.route('/ir/activities/music')
+    def ir_activities_music():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_PROG1'])
+        return "OK"
+
+    @app.route('/ir/activities/movies')
+    def ir_activities_movies():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_PROG1'])
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER'])
+        return "OK"
+
+    @app.route('/ir/activities/switch')
+    def ir_activities_switch():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_PROG2'])
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER'])
+        return "OK"
+
+    @app.route('/ir/activities/ps4')
+    def ir_activities_ps4():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_PROG3'])
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER'])
+        return "OK"
+
+    @app.route('/ir/devices/optoma/on')
+    def ir_devices_optoma_on():
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER'])
+        return "OK"
+
+    @app.route('/ir/devices/optoma/off')
+    def ir_devices_optoma_off():
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER2'])
+        time.sleep(1)
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER2'])
+        time.sleep(2)
+        subprocess.call(['irsend', 'SEND_ONCE', 'optoma', 'KEY_POWER2'])
+        return "OK"
+
+    @app.route('/ir/devices/denon/on')
+    def ir_devices_denon_on():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_POWER'])
+        return "OK"
+
+    @app.route('/ir/devices/denon/off')
+    def ir_devices_denon_off():
+        subprocess.call(['irsend', 'SEND_ONCE', 'denon', 'KEY_POWER2'])
+        return "OK"
 
     return app
